@@ -56,24 +56,24 @@ function stop_recording() {
     MEDIA_RECORDER.stop();
 }
 
-function generate_audio_data() {
+function getAudioBuffer() {
     if(!AUDIO_CHUNKS.length) throw 'No sound is available';
-    return new Blob(AUDIO_CHUNKS).arrayBuffer();
+
+    return new Blob(AUDIO_CHUNKS).arrayBuffer()
+    .then(audioData => CONTEXT.decodeAudioData(audioData));
 }
 
 async function playSound() {
-    const audioData = await generate_audio_data();
-    const buffer = await CONTEXT.decodeAudioData(audioData);
-
+    const buffer = await getAudioBuffer();
     const analyser = CONTEXT.createAnalyser();
-    analyser.fftSize = 2048;
-    analyser.connect(CONTEXT.destination);
-    
-    let flag = true;
     const source = CONTEXT.createBufferSource();
+    let keepPlaying = true;
+
+    analyser.fftSize = 2048;
     source.buffer = buffer;
-    source.addEventListener('ended', () => flag = false);    
+    source.addEventListener('ended', () => keepPlaying = false);    
     source.connect(analyser);
+    analyser.connect(CONTEXT.destination);    
     
     const freqArray = new Uint8Array(analyser.frequencyBinCount);
     const width = canvas.width / freqArray.length;
@@ -82,7 +82,7 @@ async function playSound() {
     const draw = () => {
         analyser.getByteFrequencyData(freqArray);
         plotData(freqArray, width, cv, ch);
-        flag && requestAnimationFrame(draw);
+        keepPlaying && requestAnimationFrame(draw);
     }
 
     source.start();
@@ -90,7 +90,7 @@ async function playSound() {
 }
  
 function plotData(freqArray, width, cv, ch) {
-    const peakIndices = findPeak(freqArray);
+    const peakIndices = findPeaks(freqArray, true);
     let i = freqArray.length;
     let j = peakIndices.length;
 
@@ -112,10 +112,11 @@ function plotData(freqArray, width, cv, ch) {
     canvasContext.fill();
 }
 
-function findPeak(freqArray) {
+function findPeaks(freqArray, isIndex) {
     const len = freqArray.length;
+    const minimum_strength = 30;
     const cutoff = 0.5;
-    const peakIndices = [];
+    const peakData = [];
 
     let peakIndex = 0;
     let peak = freqArray[peakIndex];
@@ -129,6 +130,7 @@ function findPeak(freqArray) {
 
     for(let i = 1; i < len; ++i) {
         const freq = freqArray[i];
+        if(freq < minimum_strength) continue;
 
         if(valley / freq < cutoff) {
             if(fell) {
@@ -144,7 +146,7 @@ function findPeak(freqArray) {
         if(freq / peak < cutoff) {
             if(!fell) {
                 fell = true;
-                peakIndices.push(peakIndex);
+                peakData.push(isIndex ? peakIndex : peak);
                 valley = freq;
                 valleyIndex = i;
             } else if(freq < valley) {
@@ -154,21 +156,34 @@ function findPeak(freqArray) {
         }
     }
 
-    return peakIndices;
+    return peakData;
 }
 
 async function talk() {
-    const audioData = await generate_audio_data();
-    const freqMap = generate_frequency_map(audioData);
-    console.log(freqMap);
-    // const pianoMap = filter_piano_maps(freqMap);
-    // playPiano(pianoMap);
+    const buffer = await getAudioBuffer();
+    const analyser = CONTEXT.createAnalyser();
+    const source = CONTEXT.createBufferSource();
+    let keepPlaying = true;
+
+    analyser.fftSize = 2048;
+    source.buffer = buffer;
+    source.addEventListener('ended', () => keepPlaying = false);    
+    source.connect(analyser);
+    
+    const freqArray = new Uint8Array(analyser.frequencyBinCount);
+
+    const loop = () => {
+        analyser.getByteFrequencyData(freqArray);
+        const peaks = findPeaks(freqArray, false);
+        // const pianoMaps = map_to_piano(peaks);
+        // playPiano(pianoMaps);
+    }
+
+    source.start();
+    loop();
 }
 
-function generate_frequency_map(sound) {
-}
-
-function filter_piano_maps(freqMap) {
+function map_to_piano(peaks) {
 
 }
 
