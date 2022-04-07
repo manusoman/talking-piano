@@ -1,37 +1,72 @@
 (() => { 'use strict';
 
+const totalNotes = 88;
+const { floor, log2 } = Math;
 const note_frequencies = get_note_frequencies();
+const note_shift = 5;
 
 function Piano(context) {
     this.context = context;
+    this.currentlyPlaying = new Uint8Array(totalNotes);
 }
 
 Piano.prototype = {
     constructor : Piano,
 
-    playNote : function(frequency) {
+    play : function(frequencies, amplitudes) {
+        const len = frequencies.length;
+        const playingIndices = [];
+
+        for(let i = 0; i < len; ++i) {
+            const freq = frequencies[i];
+
+            if(freq < 28 || freq > 4100) continue;
+            // To avoid frequencies that fall below or beyond the piano range
+
+            const index = getNearestNoteIndex(freq) - note_shift;
+            // note_shift is used to play everything at a lower pitch
+            
+            const note = note_frequencies[index];
+
+            playingIndices.push(index);
+            !this.currentlyPlaying[index] && this.playNote(note, amplitudes[i] / 255);
+        }
+
+        if(playingIndices.length) {
+            let j = 0;
+
+            for(let i = 0; i < totalNotes; ++i) {
+                if(i === playingIndices[j]) {
+                    this.currentlyPlaying[i] = 1;
+                    ++j;
+                } else {
+                    this.currentlyPlaying[i] = 0;
+                }
+            }
+        } else {
+            this.currentlyPlaying.fill(0);
+        }
+    },
+
+    playNote : function(frequency, gain) {
         const ctx = this.context;
         const main = ctx.createOscillator();
-        const harmonic1 = ctx.createOscillator();
-        const harmonic2 = ctx.createOscillator();
-        const harmonic3 = ctx.createOscillator();
         
         main.frequency.value = frequency;
-        harmonic1.frequency.value = frequency * 2;
-        harmonic2.frequency.value = frequency * (2 ** (7 / 12));
-        harmonic3.frequency.value = frequency * (2 ** (4 / 12));
           
         const ct = ctx.currentTime;
-        applyGain(ctx, 1, ct, main);
-        applyGain(ctx, 0.8, ct, harmonic1);
-        applyGain(ctx, 0.6, ct, harmonic2);
-        applyGain(ctx, 0.4, ct, harmonic3);
-          
+        applyGain(ctx, gain, ct, main);
         main.start();
-        harmonic1.start();
-        harmonic2.start();
-        harmonic3.start();
     }
+}
+
+function getNearestNoteIndex(freq) {
+    const first = 27.5;
+    const index = floor(log2(freq / first) * 12);
+    const a = freq - note_frequencies[index];
+    const b = note_frequencies[index + 1] - freq;
+
+    return a < b ? index : index + 1;
 }
 
 function applyGain(ctx, level, ct, osc) {
@@ -39,32 +74,26 @@ function applyGain(ctx, level, ct, osc) {
     
     gain.gain.setValueAtTime(0, ct);
     gain.gain.linearRampToValueAtTime(0.9 * level, ct + 0.04);
-    gain.gain.linearRampToValueAtTime(0.6 * level, ct + 0.7);
-    gain.gain.linearRampToValueAtTime(0, ct + 2);
+    gain.gain.linearRampToValueAtTime(0.6 * level, ct + 0.3);
+    gain.gain.linearRampToValueAtTime(0, ct + 0.5);
     
     osc.connect(gain);
     gain.connect(ctx.destination);
 }
 
 function get_note_frequencies() {
-    const totalNotes = 88;
-    const frequencies = [];
-    const A_index = 48; // Index of middle A
+    const first = 27.5; // Lowest note frequency
+    const frequencies = new Float64Array(totalNotes);
+    let i = totalNotes;
 
-    frequencies[A_index] = 440;
-
-    for(let i = 1; i <= A_index ; ++i) {
-        const scalar = 2 ** (i / 12);
-        frequencies[A_index - i] = 440 / scalar;
-        
-        if(A_index + i < totalNotes) {
-            frequencies[A_index + i] = 440 * scalar;
-        }
-    }
-
+    while(i--) frequencies[i] = first * Math.pow(2, i / 12);
     return frequencies;
 }
 
+
 window.Piano = Piano;
+
+window.p = new Piano(new AudioContext());
+// Delete this line when testing is done
 
 })();
