@@ -126,10 +126,9 @@ async function talk() {
     const analyser = CONTEXT.createAnalyser();
     const source = CONTEXT.createBufferSource();
     const sampleRate = CONTEXT.sampleRate;
-    const fftSize = FFT_SIZE;
     let keepLooping = true;
 
-    analyser.fftSize = fftSize;
+    analyser.fftSize = FFT_SIZE;
     source.buffer = buffer;
     source.addEventListener('ended', () => keepLooping = false);
     source.connect(lowPass);
@@ -141,7 +140,7 @@ async function talk() {
     const loop = () => {
         analyser.getByteFrequencyData(freqArray);
         const peaks = findPeaks(freqArray);
-        const peakFreqs = peaks.map(peak => sampleRate * peak / fftSize);
+        const peakFreqs = peaks.map(peak => sampleRate * peak / FFT_SIZE);
         const peakAmps = peaks.map(peak => freqArray[peak]);
         PIANO.play(peakFreqs, peakAmps);
         keepLooping && setTimeout(loop, timePeriod);
