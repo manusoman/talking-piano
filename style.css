@@ -1,0 +1,89 @@
+* {
+  margin : 0px;
+  padding : 0px;
+  border: none;
+  box-sizing: border-box;
+}
+
+html {
+  font-family: 'arial', sans-serif;
+}
+
+body {
+  background-color: #404040;
+}
+
+header {
+  padding: 10px;
+  height: 50px;
+  background-color: black;
+  text-align: center;
+}
+
+header > h1 {
+  font-size: 24px;
+  color: white;
+}
+
+canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 22px;
+}
+
+#piano {
+  width: 100%;
+  height: 200px;
+  text-align: center;
+}
+
+#piano > div {
+  position: relative;
+  display: inline-block;
+  vertical-align: top;
+}
+
+#piano > div.white {
+  width: 20px;
+  height: 100%;
+  background-color: white;
+  border-right: 1px solid #e0e0e0;
+}
+
+#piano > div.black {
+  margin: 0px -7px 0px -7px;
+  width: 14px;
+  height: 65%;
+  background-color: black;
+  z-index: 1;
+}
+
+#piano > div:hover {
+  background-color: gray;
+}
+
+#piano > div.keyDown {
+  background-color: green;
+}
+
+#frequencyBars {
+  position: absolute;
+  width: 100%;
+  top: 250px;
+  bottom: 100px;
+}
+
+#controlPanel {
+  position: fixed;
+  padding: 30px;
+  width: 100%;
+  height: 100px;
+  bottom: 0px;
+  text-align: center;
+  background-color: black;
+}

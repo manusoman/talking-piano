@@ -1,26 +1,16 @@
 (() => { 'use strict';
 
-const canvas = document.getElementById('canvas');
-const record_button = document.getElementById('record');
-const play_button = document.getElementById('play');
-const talk_button = document.getElementById('talk');
-
-const canvasContext = canvas.getContext('2d');
+const UI = window.UI;
 const CONTEXT = new (AudioContext || webkitAudioContext)();
 const AUDIO_CHUNKS = [];
 const PIANO = new Piano(CONTEXT);
+const FFT_SIZE = 1024 * 4;
+const TIME_PERIOD = 0.1;
 
-let FFT_SIZE = 1024 * 4;
-let timePeriod = 0.1;
 let MEDIA_RECORDER = null;
 
-canvas.width = 1024;
-canvas.height = 500;
-
-Promise.all([
-    initMediaRecorder(),
-    initUI()
-]).then(() => console.log('App initialized'));
+UI.init(PIANO, { record, stop_recording, playSound, talk });
+initMediaRecorder().then(() => console.log('App initialized'));
 
 
 async function initMediaRecorder() {
@@ -34,13 +24,6 @@ async function initMediaRecorder() {
     MEDIA_RECORDER.addEventListener('dataavailable', e => {
         if(e.data.size > 0) AUDIO_CHUNKS.push(e.data);
     });
-}
-
-function initUI() {
-    record_button.addEventListener('mousedown', record, true);
-    record_button.addEventListener('mouseup', stop_recording, true);
-    play_button.addEventListener('click', playSound, true);
-    talk_button.addEventListener('click', talk, true);
 }
 
 function record() {
@@ -84,40 +67,15 @@ async function playSound() {
     analyser.connect(CONTEXT.destination);    
     
     const freqArray = new Uint8Array(analyser.frequencyBinCount);
-    const width = canvas.width / freqArray.length;
-    const cv = canvas.width, ch = canvas.height;
 
     const draw = () => {
         analyser.getByteFrequencyData(freqArray);
-        plotData(freqArray, width, cv, ch);
-        keepPlaying && requestAnimationFrame(draw);
+        UI.plotData(freqArray);
+        keepPlaying ? requestAnimationFrame(draw) : UI.clearCanvas();
     }
 
     source.start();
     requestAnimationFrame(draw);
-}
- 
-function plotData(freqArray, width, cv, ch) {
-    const peakIndices = findPeaks(freqArray);
-    let i = freqArray.length;
-    let j = peakIndices.length;
-
-    canvasContext.clearRect(0, 0, cv, ch);    
-    canvasContext.fillStyle = '#0f0';
-
-    while(j--) {
-        const index = peakIndices[j];
-        canvasContext.fillRect(index * width, 0, width, 500);
-    }
-
-    canvasContext.fill();
-    canvasContext.fillStyle = '#f00';
-
-    while(i--) {
-        canvasContext.fillRect(i * width, 500, width, -freqArray[i]);
-    }
-
-    canvasContext.fill();
 }
 
 async function talk() {
@@ -143,7 +101,8 @@ async function talk() {
         const peakFreqs = peaks.map(peak => sampleRate * peak / FFT_SIZE);
         const peakAmps = peaks.map(peak => freqArray[peak]);
         PIANO.play(peakFreqs, peakAmps);
-        keepLooping && setTimeout(loop, timePeriod);
+
+        keepLooping ? setTimeout(loop, TIME_PERIOD) : UI.clearKeyPresses();
     }
 
     source.start();
@@ -196,11 +155,6 @@ function findPeaks(freqArray) {
 
     return peakData;
 }
-
-window.set = (a, b) => {
-    timePeriod = a;
-    FFT_SIZE = b * 1024;
-};
 
 
 })();

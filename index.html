@@ -5,36 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" type="image/x-icon" href="favicon.svg" />
     <title>Talkind Piano</title>
-    <style>
-        * {
-            margin : 0px;
-            padding : 0px;
-        }
-
-        body {
-            padding: 50px;
-            background-color: #404040;
-        }
-
-        canvas {
-            display: block;
-        }
-
-        button {
-            padding: 20px;
-            font-size: 30px;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<canvas id="canvas"></canvas>
+<header>
+    <h1>Talking Piano</h1>
+</header>
 
-<button id="record">Record</button>
-<button id="play">Play</button>
-<button id="talk">Talk</button>
+<section id="piano"></section>
 
-<!-- <script type="text/javascript" src="src/dsp.js"></script> -->
+<section id="frequencyBars">
+    <canvas id="canvas"></canvas>
+</section>
+
+<section id="controlPanel">
+    <button id="record">Record</button>
+    <button id="play">Play</button>
+    <button id="talk">Talk</button>
+</section>
+
+
+<script type="text/javascript" src="src/ui.js"></script>
 <script type="text/javascript" src="src/piano.js"></script>
 <script type="text/javascript" src="src/app.js"></script>
 

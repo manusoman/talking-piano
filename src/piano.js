@@ -1,5 +1,6 @@
 (() => { 'use strict';
 
+const UI = window.UI;
 const totalNotes = 88;
 const { floor, log2 } = Math;
 const note_frequencies = get_note_frequencies();
@@ -25,34 +26,31 @@ Piano.prototype = {
 
             const index = getNearestNoteIndex(freq) - note_shift;
             // note_shift is used to play everything at a lower pitch
-            
-            const note = note_frequencies[index];
 
             playingIndices.push(index);
-            !this.currentlyPlaying[index] && this.playNote(note, amplitudes[i] / 255);
+
+            if(!this.currentlyPlaying[index]) {
+                this.playNote(index, amplitudes[i] / 255);
+                UI.pressKey(index);
+            }
         }
 
-        if(playingIndices.length) {
-            let j = 0;
-
-            for(let i = 0; i < totalNotes; ++i) {
-                if(i === playingIndices[j]) {
-                    this.currentlyPlaying[i] = 1;
-                    ++j;
-                } else {
-                    this.currentlyPlaying[i] = 0;
-                }
+        for(let i = 0, j = 0; i < totalNotes; ++i) {
+            if(i === playingIndices[j]) {
+                this.currentlyPlaying[i] = 1;
+                ++j;
+            } else {
+                this.currentlyPlaying[i] = 0;
+                UI.releaseKey(i);
             }
-        } else {
-            this.currentlyPlaying.fill(0);
         }
     },
 
-    playNote : function(frequency, gain) {
+    playNote : function(noteIndex, gain) {
         const ctx = this.context;
         const main = ctx.createOscillator();
         
-        main.frequency.value = frequency;
+        main.frequency.value = note_frequencies[noteIndex];
           
         const ct = ctx.currentTime;
         applyGain(ctx, gain, ct, main);
@@ -92,8 +90,5 @@ function get_note_frequencies() {
 
 
 window.Piano = Piano;
-
-window.p = new Piano(new AudioContext());
-// Delete this line when testing is done
 
 })();
