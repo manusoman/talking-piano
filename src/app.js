@@ -1,5 +1,7 @@
 (() => { 'use strict';
 
+if(!window.appSupport) return;
+
 const UI = window.UI;
 const CONTEXT = new (AudioContext || webkitAudioContext)();
 const AUDIO_CHUNKS = [];
@@ -7,30 +9,51 @@ const PIANO = new Piano(CONTEXT);
 const FFT_SIZE = 1024 * 4;
 const TIME_PERIOD = 0.1;
 
+const CUTOFF_LOW = Math.ceil(27.5 * FFT_SIZE / CONTEXT.sampleRate);
+const CUTOFF_HIGH = Math.floor(4186 * FFT_SIZE / CONTEXT.sampleRate);
+// These two are for limiting the peak search
+// within the pitch range of a piano
+
 let MEDIA_RECORDER = null;
 
-UI.init(PIANO, { record, stop_recording, playSound, talk });
-initMediaRecorder().then(() => console.log('App initialized'));
+UI.init(PIANO, { initMediaRecorder, record, stop_recording, playSound, talk });
 
+async function initMediaRecorder(cb) {
+    try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const stream = await navigator.mediaDevices.getUserMedia({
+            audio : { deviceId : devices.filter(d => d.kind === 'audioinput')[0].deviceId },
+            video : false
+        });
 
-async function initMediaRecorder() {
-    const devices = await navigator.mediaDevices.enumerateDevices();
-    const stream = await navigator.mediaDevices.getUserMedia({
-        audio : { deviceId : devices.filter(d => d.kind === 'audioinput')[0].deviceId },
-        video : false
-    });
+        MEDIA_RECORDER = new MediaRecorder(stream, { mimeType : 'audio/webm' });
+        MEDIA_RECORDER.addEventListener('dataavailable', e => {
+            if(e.data.size > 0) AUDIO_CHUNKS.push(e.data);
+        });
+    
+        cb();
 
-    MEDIA_RECORDER = new MediaRecorder(stream, { mimeType : 'audio/webm' });
-    MEDIA_RECORDER.addEventListener('dataavailable', e => {
-        if(e.data.size > 0) AUDIO_CHUNKS.push(e.data);
-    });
+    } catch(err) {
+        console.error(err);
+        cb();
+        UI.throwMessage('Permission denied. Try reloading the app.', 4);
+    }
 }
 
-function record() {
-    if(!MEDIA_RECORDER) throw 'Media Recorder is unavailable';
+async function record() {
+    if(!MEDIA_RECORDER) {
+        UI.ask_microPhone_permission();
+        return;
+    }
     
     AUDIO_CHUNKS.length = 0;
-    MEDIA_RECORDER.start();
+
+    try {
+        MEDIA_RECORDER.start();
+    } catch(err) {
+        console.error(err);
+        UI.ask_microPhone_permission();
+    }
 }
 
 function stop_recording() {
@@ -39,7 +62,11 @@ function stop_recording() {
 }
 
 function getAudioBuffer() {
-    if(!AUDIO_CHUNKS.length) throw 'No sound is available';
+    if(!AUDIO_CHUNKS.length) {
+        UI.throwMessage('No sound is available');
+        console.error('No sound is available');
+        return;
+    }
 
     return new Blob(AUDIO_CHUNKS).arrayBuffer()
     .then(audioData => CONTEXT.decodeAudioData(audioData));
@@ -67,10 +94,11 @@ async function playSound() {
     analyser.connect(CONTEXT.destination);    
     
     const freqArray = new Uint8Array(analyser.frequencyBinCount);
+    const plotLength = CUTOFF_HIGH - CUTOFF_LOW + 1;
 
     const draw = () => {
         analyser.getByteFrequencyData(freqArray);
-        UI.plotData(freqArray);
+        UI.plotData(freqArray, CUTOFF_LOW, plotLength);
         keepPlaying ? requestAnimationFrame(draw) : UI.clearCanvas();
     }
 
@@ -110,26 +138,28 @@ async function talk() {
 }
 
 function findPeaks(freqArray) {
-    const len = freqArray.length;
+    // This is a very naive implementation of a peak detector.
+    // Lots of room for improvement, I guess. Need to learn how.
+
     const minimum_strength = 30;
-    const cutoff = 0.5;
+    const cutoff_strength = 0.5;
     const peakData = [];
 
-    let peakIndex = 0;
+    let peakIndex = CUTOFF_LOW;
     let peak = freqArray[peakIndex];
 
-    let valleyIndex = 0;
+    let valleyIndex = CUTOFF_LOW;
     let valley = freqArray[valleyIndex];
 
     let fell = false;
     // flag for checking whether the graph fell
     // below the cutoff when descending
 
-    for(let i = 1; i < len; ++i) {
+    for(let i = CUTOFF_LOW + 1; i <= CUTOFF_HIGH; ++i) {
         const freq = freqArray[i];
         if(freq < minimum_strength) continue;
 
-        if(valley / freq < cutoff) {
+        if(valley / freq < cutoff_strength) {
             if(fell) {
                 fell = false;
                 peak = freq;
@@ -140,7 +170,7 @@ function findPeaks(freqArray) {
             }
         }
 
-        if(freq / peak < cutoff) {
+        if(freq / peak < cutoff_strength) {
             if(!fell) {
                 fell = true;
                 valley = freq;

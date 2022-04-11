@@ -34,6 +34,11 @@ canvas {
 button {
   padding: 10px 20px;
   font-size: 22px;
+  border-radius: 10px;
+}
+
+.off {
+  display: none;
 }
 
 #piano {
@@ -86,4 +91,34 @@ button {
   bottom: 0px;
   text-align: center;
   background-color: black;
+}
+
+#overlay {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0px;
+  left: 0px;
+  background-color: #000d;
+  z-index: 2;
+}
+
+#noSupport, #permissionRequest, #errorReport {
+  position: fixed;
+  padding: 20px 20px 0px 20px;
+  margin: 0px auto;
+  width: 80%;
+  max-width: 500px;
+  top: 50px;
+  left: 0px;
+  right: 0px;
+  text-align: center;
+  border-radius: 10px;
+  color: white;
+  background-color: grey;
+  z-index: 2;
+}
+
+#noSupport > *, #permissionRequest > *, #errorReport > * {
+  margin-bottom: 20px;
 }

@@ -1,5 +1,7 @@
 (() => { 'use strict';
 
+if(!window.appSupport) return;
+
 const UI = window.UI;
 const totalNotes = 88;
 const { floor, log2 } = Math;

@@ -1,5 +1,35 @@
 (() => { 'use strict';
 
+const overlay = document.getElementById('overlay');
+const noSupport = document.getElementById('noSupport');
+
+// Browser support test
+(() => {
+    const support = (window.webkitAudioContext || window.AudioContext) && 
+                    window.navigator.mediaDevices &&
+                    window.navigator.mediaDevices.getUserMedia &&
+                    window.navigator.mediaDevices.enumerateDevices &&
+                    window.navigator.permissions &&
+                    window.MediaRecorder;
+
+    if(!support) {
+        window.appSupport = false;
+        overlay.classList.remove('off');
+        noSupport.classList.remove('off');
+
+        // stop process
+        throw 'No app support';
+    }
+
+    window.appSupport = true;
+})();
+
+
+
+const permissionRequest = document.getElementById('permissionRequest');
+const grant_permission = document.getElementById('grant_permission');
+const errorReport = document.getElementById('errorReport');
+const errorText = document.getElementById('errorText');
 const pianoFrame = document.getElementById('piano');
 const frequencyBars = document.getElementById('frequencyBars');
 const canvas = document.getElementById('canvas');
@@ -11,19 +41,33 @@ const totalNotes = 88;
 const keyList = [];
 const canvasContext = canvas.getContext('2d');
 
-let piano = null;
+let PIANO = null;
 
 createPianoUI();
 setCanvas();
 
 
 window.UI = {
-    init : (pno, callbacks) => {
-        piano = pno;
+    init : (piano, callbacks) => {
+        PIANO = piano;
+
+        grant_permission.addEventListener('click', () => {
+            callbacks.initMediaRecorder(() => {
+                // Callback for disabling permission request overlay
+                permissionRequest.classList.add('off');
+                overlay.classList.add('off');
+            });
+        }, true);
+
         record_button.addEventListener('mousedown', callbacks.record, true);
         record_button.addEventListener('mouseup', callbacks.stop_recording, true);
         play_button.addEventListener('click', callbacks.playSound, true);
         talk_button.addEventListener('click', callbacks.talk, true);
+    },
+
+    ask_microPhone_permission : () => {
+        overlay.classList.remove('off');
+        permissionRequest.classList.remove('off');
     },
 
     pressKey : keyIndex => {
@@ -39,15 +83,14 @@ window.UI = {
         while(i--) this.releaseKey(i);
     },
 
-    plotData : (freqArray) => {
-        const barWidth = canvas.width / freqArray.length;
+    plotData : (freqArray, startIndex, length) => {
+        const barWidth = canvas.width / length;
         const cv = canvas.width, ch = canvas.height;
-        let i = freqArray.length;
     
         canvasContext.clearRect(0, 0, cv, ch);
         canvasContext.fillStyle = '#f00';
     
-        while(i--) {
+        for(let i = startIndex; i < startIndex + length; ++i) {
             const height = freqArray[i] * ch / 255;
             canvasContext.fillRect(i * barWidth, ch, barWidth, -height);
         }
@@ -58,6 +101,18 @@ window.UI = {
     clearCanvas : () => {
         const cv = canvas.width, ch = canvas.height;
         canvasContext.clearRect(0, 0, cv, ch);
+    },
+
+    throwMessage : (msg, duration = 1) => {
+        errorText.innerHTML = msg;
+        overlay.classList.remove('off');
+        errorReport.classList.remove('off');
+
+        setTimeout(() => {
+            errorReport.classList.add('off');
+            overlay.classList.add('off');
+            errorText.innerHTML = '';
+        }, duration * 1000);
     }
 };
 
@@ -90,7 +145,7 @@ function setCanvas() {
 }
 
 function playKey(keyIndex) {
-    if(piano) piano.playNote(keyIndex, 1);
+    if(PIANO) PIANO.playNote(keyIndex, 1);
     else throw "No piano available";
 }
 

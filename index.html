@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" type="image/x-icon" href="favicon.svg" />
-    <title>Talkind Piano</title>
+    <title>Talking Piano</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -25,10 +25,26 @@
     <button id="talk">Talk</button>
 </section>
 
+<div id="overlay" class="off"></div>
+
+<div id="noSupport" class="off">
+    <h3>Sorry!</h3>
+    <p>Your browser doesn't support this app.<br>
+        Please update the browser or switch to another one.</p>
+</div>
+
+<div id="permissionRequest" class="off">
+    <h3>Permission needed</h3>
+    <p>This app needs access to microphone to record your voice.</p>
+    <button id="grant_permission">Grant microphone access</button>
+</div>
+
+<div id="errorReport" class="off"><p id="errorText"></p></div>
+
 
 <script type="text/javascript" src="src/ui.js"></script>
 <script type="text/javascript" src="src/piano.js"></script>
 <script type="text/javascript" src="src/app.js"></script>
 
 </body>
-</html> 
+</html>
