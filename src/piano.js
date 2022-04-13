@@ -24,10 +24,13 @@ Piano.prototype = {
             const freq = frequencies[i];
 
             if(freq < 28 || freq > 4100) continue;
-            // To avoid frequencies that fall below or beyond the piano range
+            // To avoid frequencies that are outside the piano range
 
             const index = getNearestNoteIndex(freq) - note_shift;
-            // note_shift is used to play everything at a lower pitch
+            if(index < 0) continue;
+            // note_shift is used to play everything at a lower pitch.
+            // Some times this can cause the index to be less than 0.
+            // And that should be skipped.
 
             playingIndices.push(index);
 
@@ -58,7 +61,7 @@ Piano.prototype = {
         applyGain(ctx, gain, ct, main);
         main.start();
     }
-}
+};
 
 function getNearestNoteIndex(freq) {
     const first = 27.5;
@@ -82,11 +85,11 @@ function applyGain(ctx, level, ct, osc) {
 }
 
 function get_note_frequencies() {
-    const first = 27.5; // Lowest note frequency
+    const first_note = 27.5; // Lowest note frequency
     const frequencies = new Float64Array(totalNotes);
     let i = totalNotes;
 
-    while(i--) frequencies[i] = first * Math.pow(2, i / 12);
+    while(i--) frequencies[i] = first_note * Math.pow(2, i / 12);
     return frequencies;
 }
 
