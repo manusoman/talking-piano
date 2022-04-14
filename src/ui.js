@@ -3,7 +3,7 @@
 const overlay = document.getElementById('overlay');
 const noSupport = document.getElementById('noSupport');
 
-// Browser support test
+// Browser support check
 (() => {
     const support = (window.webkitAudioContext || window.AudioContext) && 
                     window.navigator.mediaDevices &&
@@ -25,7 +25,6 @@ const noSupport = document.getElementById('noSupport');
 })();
 
 
-
 const permissionRequest = document.getElementById('permissionRequest');
 const grant_permission = document.getElementById('grant_permission');
 const errorReport = document.getElementById('errorReport');
@@ -42,6 +41,7 @@ const keyList = [];
 const canvasContext = canvas.getContext('2d');
 
 let PIANO = null;
+let stopPlotter = false;
 
 createPianoUI();
 setCanvas();
@@ -63,6 +63,9 @@ window.UI = {
         record_button.addEventListener('mouseup', callbacks.stop_recording, true);
         play_button.addEventListener('click', callbacks.playSound, true);
         talk_button.addEventListener('click', callbacks.talk, true);
+
+        canvas.addEventListener('click', () => stopPlotter = !stopPlotter, true);
+        // Delete when peak finding is improved.
     },
 
     ask_microPhone_permission : () => {
@@ -83,22 +86,36 @@ window.UI = {
         while(i--) this.releaseKey(i);
     },
 
-    plotData : (freqArray, startIndex, length) => {
+    plotData : (freqArray, startIndex, length, peaks) => {
+        if(stopPlotter) return;
+
         const barWidth = canvas.width / length;
         const cv = canvas.width, ch = canvas.height;
     
         canvasContext.clearRect(0, 0, cv, ch);
+
+        canvasContext.fillStyle = '#0f0';
+    
+        for(let i = 0, len = peaks.length; i < len; ++i) {
+            const index = peaks[i] - startIndex;
+            canvasContext.fillRect(index * barWidth, 0, barWidth, ch);
+        }
+    
+        canvasContext.fill();
+
         canvasContext.fillStyle = '#f00';
     
-        for(let i = startIndex; i < startIndex + length; ++i) {
+        for(let i = startIndex, j = 0; i < startIndex + length; ++i, ++j) {
             const height = freqArray[i] * ch / 255;
-            canvasContext.fillRect(i * barWidth, ch, barWidth, -height);
+            canvasContext.fillRect(j * barWidth, ch, barWidth, -height);
         }
     
         canvasContext.fill();
     },
 
     clearCanvas : () => {
+        if(stopPlotter) return;
+
         const cv = canvas.width, ch = canvas.height;
         canvasContext.clearRect(0, 0, cv, ch);
     },

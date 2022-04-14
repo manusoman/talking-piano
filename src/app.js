@@ -14,6 +14,9 @@ const CUTOFF_HIGH = Math.floor(4186 * FFT_SIZE / CONTEXT.sampleRate);
 // These two are for limiting the peak search
 // within the pitch range of a piano
 
+const testData = [];
+// Delete when peak finding is improved.
+
 let MEDIA_RECORDER = null;
 
 UI.init(PIANO, { initMediaRecorder, record, stop_recording, playSound, talk });
@@ -40,7 +43,7 @@ async function initMediaRecorder(cb) {
     }
 }
 
-async function record() {
+function record() {
     if(!MEDIA_RECORDER) {
         UI.ask_microPhone_permission();
         return;
@@ -96,9 +99,15 @@ async function playSound() {
     const freqArray = new Uint8Array(analyser.frequencyBinCount);
     const plotLength = CUTOFF_HIGH - CUTOFF_LOW + 1;
 
+    testData.length = 0;
+    // Delete when testing is over
+
     const draw = () => {
         analyser.getByteFrequencyData(freqArray);
-        UI.plotData(freqArray, CUTOFF_LOW, plotLength);
+        testData.push([...freqArray]);
+        const peaks = findPeaks(freqArray);
+        UI.plotData(freqArray, CUTOFF_LOW, plotLength, peaks);
+
         keepPlaying ? requestAnimationFrame(draw) : UI.clearCanvas();
     }
 
@@ -139,10 +148,11 @@ async function talk() {
 
 function findPeaks(freqArray) {
     // This is a very naive implementation of a peak detector.
-    // Lots of room for improvement, I guess. Need to learn how.
+    // Althought it identifies peaks well, I'm not sure if this
+    // is how the core frequencies are filtered in DSP.
 
     const minimum_strength = 30;
-    const cutoff_strength = 0.5;
+    const trigger = 20;
     const peakData = [];
 
     let peakIndex = CUTOFF_LOW;
@@ -157,9 +167,8 @@ function findPeaks(freqArray) {
 
     for(let i = CUTOFF_LOW + 1; i <= CUTOFF_HIGH; ++i) {
         const freq = freqArray[i];
-        if(freq < minimum_strength) continue;
 
-        if(valley / freq < cutoff_strength) {
+        if(freq - valley > trigger) {
             if(fell) {
                 fell = false;
                 peak = freq;
@@ -170,12 +179,12 @@ function findPeaks(freqArray) {
             }
         }
 
-        if(freq / peak < cutoff_strength) {
+        if(peak - freq > trigger) {
             if(!fell) {
                 fell = true;
                 valley = freq;
                 valleyIndex = i;
-                peakData.push(peakIndex);
+                (peak >= minimum_strength) && peakData.push(peakIndex);
             } else if(freq < valley) {
                 valley = freq;
                 valleyIndex = i;
@@ -185,6 +194,53 @@ function findPeaks(freqArray) {
 
     return peakData;
 }
+
+
+
+
+// CODE FOR TESTING ***************************************************************
+
+const anchor = document.getElementById('downloader');
+anchor.addEventListener('click', saveData, true);
+
+function saveData() {
+    trim_test_data();
+    const data = JSON.stringify({ testData, CUTOFF_LOW, CUTOFF_HIGH });
+    const blb = new Blob([data], { type : 'application/json' });
+
+    anchor.download = 'testData.json';
+    anchor.href = URL.createObjectURL(blb);
+}
+
+const isEmpty = arr => {
+    for(let i = 0, len = arr.length; i < len; ++i) {
+        if(arr[i]) return false;
+    }
+    return true;
+};
+
+function trim_test_data() {
+    // This function removes empty arrays
+    // from the beginning and end of the testData.
+
+    // Trim beginning
+    while(testData.length) {
+        if(isEmpty(testData[0])) testData.shift();
+        else break;
+    }
+
+    // Trim end
+    let i = testData.length;
+
+    while(i--) {
+        if(isEmpty(testData[i])) testData.pop();
+        else return;
+    }
+}
+
+window.removeData = () => {
+    URL.revokeObjectURL(anchor.href);
+};
 
 
 })();

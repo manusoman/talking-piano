@@ -18,11 +18,11 @@ header {
   height: 50px;
   background-color: black;
   text-align: center;
+  color: white;
 }
 
 header > h1 {
   font-size: 24px;
-  color: white;
 }
 
 canvas {
