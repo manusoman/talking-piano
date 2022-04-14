@@ -7,6 +7,7 @@ const totalNotes = 88;
 const { floor, log2 } = Math;
 const note_frequencies = get_note_frequencies();
 const note_shift = 5;
+const gainLimiter = 100 / Math.pow(totalNotes, 2);
 
 function Piano(context) {
     this.context = context;
@@ -35,7 +36,8 @@ Piano.prototype = {
             playingIndices.push(index);
 
             if(!this.currentlyPlaying[index]) {
-                this.playNote(index, amplitudes[i] / 255);
+                const limitVal = gainLimiter * index * index;
+                this.playNote(index, amplitudes[i] / (255 + limitVal));
                 UI.pressKey(index);
             }
         }
@@ -59,7 +61,8 @@ Piano.prototype = {
           
         const ct = ctx.currentTime;
         applyGain(ctx, gain, ct, main);
-        main.start();
+        main.start();    
+        main.stop(ct + 0.55);
     }
 };
 
@@ -79,7 +82,7 @@ function applyGain(ctx, level, ct, osc) {
     gain.gain.linearRampToValueAtTime(0.9 * level, ct + 0.04);
     gain.gain.linearRampToValueAtTime(0.6 * level, ct + 0.3);
     gain.gain.linearRampToValueAtTime(0, ct + 0.5);
-    
+
     osc.connect(gain);
     gain.connect(ctx.destination);
 }
