@@ -5,7 +5,7 @@ const noSupport = document.getElementById('noSupport');
 
 // Browser support check
 (() => {
-    const support = (window.webkitAudioContext || window.AudioContext) && 
+    const support = (window.webkitAudioContext || window.AudioContext) &&
                     window.navigator.mediaDevices &&
                     window.navigator.mediaDevices.getUserMedia &&
                     window.navigator.mediaDevices.enumerateDevices &&

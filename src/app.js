@@ -3,11 +3,11 @@
 if(!window.appSupport) return;
 
 const UI = window.UI;
+const hypot = Math.hypot;
 const CONTEXT = new (AudioContext || webkitAudioContext)();
 const AUDIO_CHUNKS = [];
 const PIANO = new Piano(CONTEXT);
 const FFT_SIZE = 1024 * 4;
-const TIME_PERIOD = 0.1;
 
 const CUTOFF_LOW = Math.ceil(27.5 * FFT_SIZE / CONTEXT.sampleRate);
 const CUTOFF_HIGH = Math.floor(4186 * FFT_SIZE / CONTEXT.sampleRate);
@@ -31,7 +31,7 @@ async function initMediaRecorder(cb) {
 
         MEDIA_RECORDER = new MediaRecorder(stream, { mimeType : 'audio/webm' });
         MEDIA_RECORDER.addEventListener('dataavailable', e => {
-            if(e.data.size > 0) AUDIO_CHUNKS.push(e.data);
+            e.data.size > 0 && AUDIO_CHUNKS.push(e.data);
         });
     
         cb();
@@ -62,24 +62,6 @@ function record() {
 function stop_recording() {
     if(!MEDIA_RECORDER) throw 'Media Recorder is unavailable';
     MEDIA_RECORDER.stop();
-}
-
-function getAudioBuffer() {
-    if(!AUDIO_CHUNKS.length) {
-        UI.throwMessage('No sound is available');
-        console.error('No sound is available');
-        return;
-    }
-
-    return new Blob(AUDIO_CHUNKS).arrayBuffer()
-    .then(audioData => CONTEXT.decodeAudioData(audioData));
-}
-
-function get_lowpass_filter() {
-    const bqFilter = CONTEXT.createBiquadFilter();
-    bqFilter.frequency.value = 2000;
-    bqFilter.type = 'lowpass';
-    return bqFilter;
 }
 
 async function playSound() {
@@ -115,41 +97,115 @@ async function playSound() {
     requestAnimationFrame(draw);
 }
 
-async function talk() {
+async function talk() {    
     const buffer = await getAudioBuffer();
-    const lowPass = get_lowpass_filter();
-    const analyser = CONTEXT.createAnalyser();
-    const source = CONTEXT.createBufferSource();
-    const sampleRate = CONTEXT.sampleRate;
-    let keepLooping = true;
+    const voiceData = buffer.getChannelData(0);
+    const len = voiceData.length;
 
-    analyser.fftSize = FFT_SIZE;
-    source.buffer = buffer;
-    source.addEventListener('ended', () => keepLooping = false);
-    source.connect(lowPass);
-    lowPass.connect(analyser);
-    
-    const freqArray = new Uint8Array(analyser.frequencyBinCount);
-    const setTimeout = window.setTimeout;
-
-    const loop = () => {
-        analyser.getByteFrequencyData(freqArray);
-        const peaks = findPeaks(freqArray);
-        const peakFreqs = peaks.map(peak => sampleRate * peak / FFT_SIZE);
-        const peakAmps = peaks.map(peak => freqArray[peak]);
-        PIANO.play(peakFreqs, peakAmps);
-
-        keepLooping ? setTimeout(loop, TIME_PERIOD) : UI.clearKeyPresses();
+    if(len < FFT_SIZE) {
+        const msg = 'Not enough sound data available';
+        UI.throwMessage(msg);
+        console.error(msg);
+        return;
     }
 
-    source.start();
-    loop();
+    const sampleRate = CONTEXT.sampleRate;
+    const chunks = [];
+    const pianoFreqs = [];
+    const pianoAmps = [];
+
+    // Divide into chunks
+    let i = 0;
+
+    while(len - i > FFT_SIZE) {
+        chunks.push(spliceBuffer(voiceData, i, FFT_SIZE));
+        i += FFT_SIZE;
+    }
+
+    if(len - i && len - i <= FFT_SIZE) {
+        const shortPiece = spliceBuffer(voiceData, i);
+        const zeroPadded = zeroPadd(shortPiece, FFT_SIZE);
+        chunks.push(zeroPadded);
+    }
+
+    // Do FFT on each chunk
+    for(let j = 0, len = chunks.length; j < len; ++j) {
+        const { real, imag } = fft(chunks[j]);
+        const frequencies = getMagnitudes(real, imag);
+
+        // Find peaks
+        const peaks = findPeaks(frequencies);
+        const peakFreqs = peaks.map(peak => sampleRate * peak / FFT_SIZE);
+        const peakAmps = peaks.map(peak => frequencies[peak]);
+
+        pianoFreqs.push(peakFreqs);
+        pianoAmps.push(peakAmps);
+    }
+
+    // Play piano
+    const interval = FFT_SIZE * 1000 / sampleRate;
+    const flen = pianoFreqs.length;
+    let counter = 0;
+
+    const ID = setInterval(() => {
+        PIANO.play(pianoFreqs[counter], pianoAmps[counter]);
+        ++counter === flen && clearInterval(ID);
+    }, interval);
+}
+
+function getAudioBuffer() {
+    if(!AUDIO_CHUNKS.length) {
+        UI.throwMessage('No sound is available');
+        console.error('No sound is available');
+        return;
+    }
+
+    return new Blob(AUDIO_CHUNKS).arrayBuffer()
+    .then(audioData => CONTEXT.decodeAudioData(audioData));
+}
+
+function get_lowpass_filter() {
+    const bqFilter = CONTEXT.createBiquadFilter();
+    bqFilter.frequency.value = 2000;
+    bqFilter.type = 'lowpass';
+    return bqFilter;
+}
+
+function zeroPadd(data, widthNeeded) {
+    let len = data.length;
+    if(len >= widthNeeded) return data;
+
+    const arr = new Float32Array(widthNeeded);
+
+    while(len--) arr[len] = data[len];
+    return arr;
+}
+
+function spliceBuffer(buff, start, len) {
+    const endIndex = len ? start + len : buff.length - 1;
+
+    if(endIndex >= buff.length) throw 'Splice error: array size is small';
+
+    const res = new Float32Array(len);
+
+    for(let i = start, j = 0; i < endIndex; ++i, ++j) {
+        res[j] = buff[i];
+    }
+
+    return res;
+}
+
+function getMagnitudes(real, imag) {
+    let i = real.length;
+    const arr = new Float32Array(i);
+    while(i--) arr[i] = hypot(real[i], imag[i]);
+    return arr;
 }
 
 function findPeaks(freqArray) {
     // This is a very naive implementation of a peak detector.
     // Althought it identifies peaks well, I'm not sure if this
-    // is how the core frequencies are filtered in DSP.
+    // is the best implementation of it.
 
     const minimum_strength = 30;
     const trigger = 20;
