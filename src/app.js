@@ -14,6 +14,8 @@ const CUTOFF_HIGH = Math.floor(4186 * FFT_SIZE / CONTEXT.sampleRate);
 // These two are for limiting the peak search
 // within the pitch range of a piano
 
+console.log(CUTOFF_HIGH);
+
 const testData = [];
 // Delete when peak finding is improved.
 
@@ -66,77 +68,38 @@ function stop_recording() {
 
 async function playSound() {
     const buffer = await getAudioBuffer();
-    const analyser = CONTEXT.createAnalyser();
+    const chunks = spliceData(buffer.getChannelData(0), FFT_SIZE);
+    const { frequencyList, peaksList } = extract_frequencies_and_peaks(chunks);
     const source = CONTEXT.createBufferSource();
-    const lowPass = get_lowpass_filter();
-    let keepPlaying = true;
-
-    analyser.fftSize = FFT_SIZE;
-    source.buffer = buffer;
-    source.addEventListener('ended', () => keepPlaying = false);    
-    source.connect(lowPass);
-    lowPass.connect(analyser);
-    analyser.connect(CONTEXT.destination);    
-    
-    const freqArray = new Uint8Array(analyser.frequencyBinCount);
     const plotLength = CUTOFF_HIGH - CUTOFF_LOW + 1;
+    
+    source.buffer = buffer;
+    source.connect(CONTEXT.destination);
+    
+    const interval = FFT_SIZE * 1000 / CONTEXT.sampleRate;
+    const flen = frequencyList.length;
+    let counter = 0;
 
-    testData.length = 0;
-    // Delete when testing is over
-
-    const draw = () => {
-        analyser.getByteFrequencyData(freqArray);
-        testData.push([...freqArray]);
-        const peaks = findPeaks(freqArray);
-        UI.plotData(freqArray, CUTOFF_LOW, plotLength, peaks);
-
-        keepPlaying ? requestAnimationFrame(draw) : UI.clearCanvas();
-    }
+    const ID = setInterval(() => {
+        UI.plotData(frequencyList[counter], CUTOFF_LOW, plotLength, peaksList[counter]);
+        ++counter === flen && clearInterval(ID);
+    }, interval);
 
     source.start();
-    requestAnimationFrame(draw);
 }
 
 async function talk() {    
     const buffer = await getAudioBuffer();
-    const voiceData = buffer.getChannelData(0);
-    const len = voiceData.length;
-
-    if(len < FFT_SIZE) {
-        const msg = 'Not enough sound data available';
-        UI.throwMessage(msg);
-        console.error(msg);
-        return;
-    }
-
+    const chunks = spliceData(buffer.getChannelData(0), FFT_SIZE);
+    const { frequencyList, peaksList } = extract_frequencies_and_peaks(chunks);
     const sampleRate = CONTEXT.sampleRate;
-    const chunks = [];
     const pianoFreqs = [];
     const pianoAmps = [];
-
-    // Divide into chunks
-    let i = 0;
-
-    while(len - i > FFT_SIZE) {
-        chunks.push(spliceBuffer(voiceData, i, FFT_SIZE));
-        i += FFT_SIZE;
-    }
-
-    if(len - i && len - i <= FFT_SIZE) {
-        const shortPiece = spliceBuffer(voiceData, i);
-        const zeroPadded = zeroPadd(shortPiece, FFT_SIZE);
-        chunks.push(zeroPadded);
-    }
-
-    // Do FFT on each chunk
-    for(let j = 0, len = chunks.length; j < len; ++j) {
-        const { real, imag } = fft(chunks[j]);
-        const frequencies = getMagnitudes(real, imag);
-
-        // Find peaks
-        const peaks = findPeaks(frequencies);
+    
+    for(let i = 0, len = chunks.length; i < len; ++i) {
+        const peaks = peaksList[i];
         const peakFreqs = peaks.map(peak => sampleRate * peak / FFT_SIZE);
-        const peakAmps = peaks.map(peak => frequencies[peak]);
+        const peakAmps = peaks.map(peak => frequencyList[i][peak]);
 
         pianoFreqs.push(peakFreqs);
         pianoAmps.push(peakAmps);
@@ -153,6 +116,49 @@ async function talk() {
     }, interval);
 }
 
+function spliceData(data, size) {
+    const len = data.length;
+
+    if(len < size) {
+        const msg = 'Not enough sound data available';
+        UI.throwMessage(msg);
+        console.error(msg);
+        return;
+    }
+    
+    // Divide into chunks
+    const chunks = [];
+    let i = 0;
+
+    while(len - i > size) {
+        chunks.push(spliceBuffer(data, i, size));
+        i += size;
+    }
+
+    if(len - i && len - i <= size) {
+        const shortPiece = spliceBuffer(data, i);
+        const zeroPadded = zeroPadd(shortPiece, size);
+        chunks.push(zeroPadded);
+    }
+
+    return chunks;
+}
+
+function extract_frequencies_and_peaks(chunks) {
+    const frequencyList = [];
+    const peaksList = [];
+
+    for(let i = 0, len = chunks.length; i < len; ++i) {
+        const frequencyData = getFrequencyData(chunks[i]);
+        const peaks = findPeaks(frequencyData);
+
+        frequencyList.push(frequencyData);
+        peaksList.push(peaks);
+    }
+
+    return { frequencyList, peaksList };
+}
+
 function getAudioBuffer() {
     if(!AUDIO_CHUNKS.length) {
         UI.throwMessage('No sound is available');
@@ -162,13 +168,6 @@ function getAudioBuffer() {
 
     return new Blob(AUDIO_CHUNKS).arrayBuffer()
     .then(audioData => CONTEXT.decodeAudioData(audioData));
-}
-
-function get_lowpass_filter() {
-    const bqFilter = CONTEXT.createBiquadFilter();
-    bqFilter.frequency.value = 2000;
-    bqFilter.type = 'lowpass';
-    return bqFilter;
 }
 
 function zeroPadd(data, widthNeeded) {
@@ -193,13 +192,6 @@ function spliceBuffer(buff, start, len) {
     }
 
     return res;
-}
-
-function getMagnitudes(real, imag) {
-    let i = real.length;
-    const arr = new Float32Array(i);
-    while(i--) arr[i] = hypot(real[i], imag[i]);
-    return arr;
 }
 
 function findPeaks(freqArray) {

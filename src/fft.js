@@ -1,18 +1,25 @@
 (() => { 'use strict';
 // My own implementation of the "Fast Fourier Transform".
 
-const log2 = Math.log2;
+const { log2, hypot } = Math;
 
-const fft = data => {
+const getFrequencyData = data => {
     const len = data.length;
-
-    if(!Number.isInteger(log2(len))) throw 'FFT data size is not a power of 2';
+    if(!Number.isInteger(log2(len))) throw 'Data size is not a power of 2';
 
     const { cosList, sinList } = computeTrigs(len);
-    return calcFFT(data, cosList, sinList, 0, 1, len);
+    const { real, imag } = fft(data, len, cosList, sinList, 0, 1);
+
+    // Find the magnitudes of fft output.
+    // Here, only the first half of the fft output is considered
+    // as the second half is just a mirror image of the first half.
+    let i = len / 2;
+    const frequencyData = new Float32Array(i);
+    while(i--) frequencyData[i] = hypot(real[i], imag[i]);
+    return frequencyData;
 }
 
-function calcFFT(data, cosList, sinList, start, offset, N) {
+function fft(data, N, cosList, sinList, start, offset) {
     const real = new Float32Array(N);
     const imag = new Float32Array(N);
     
@@ -23,8 +30,8 @@ function calcFFT(data, cosList, sinList, start, offset, N) {
     
     const half_N = N / 2;
     const offsetNew = 2 * offset;
-    const Y_even = calcFFT(data, cosList, sinList, start, offsetNew, half_N);
-    const Y_odd = calcFFT(data, cosList, sinList, start + offset, offsetNew, half_N);
+    const Y_even = fft(data, half_N, cosList, sinList, start, offsetNew);
+    const Y_odd = fft(data, half_N, cosList, sinList, start + offset, offsetNew);
 
     let i = half_N;
 
@@ -64,7 +71,6 @@ function computeTrigs(N) {
     return { cosList, sinList };
 }
 
-if(window) window.fft = fft; // For browsers
-else module.exports = fft; // For NodeJS
+if(window) window.getFrequencyData = getFrequencyData;
 
 })();
