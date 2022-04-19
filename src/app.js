@@ -3,7 +3,6 @@
 if(!window.appSupport) return;
 
 const UI = window.UI;
-const hypot = Math.hypot;
 const CONTEXT = new (AudioContext || webkitAudioContext)();
 const AUDIO_CHUNKS = [];
 const PIANO = new Piano(CONTEXT);
@@ -13,11 +12,6 @@ const CUTOFF_LOW = Math.ceil(27.5 * FFT_SIZE / CONTEXT.sampleRate);
 const CUTOFF_HIGH = Math.floor(4186 * FFT_SIZE / CONTEXT.sampleRate);
 // These two are for limiting the peak search
 // within the pitch range of a piano
-
-console.log(CUTOFF_HIGH);
-
-const testData = [];
-// Delete when peak finding is improved.
 
 let MEDIA_RECORDER = null;
 
@@ -242,53 +236,5 @@ function findPeaks(freqArray) {
 
     return peakData;
 }
-
-
-
-
-// CODE FOR TESTING ***************************************************************
-
-const anchor = document.getElementById('downloader');
-anchor.addEventListener('click', saveData, true);
-
-function saveData() {
-    trim_test_data();
-    const data = JSON.stringify({ testData, CUTOFF_LOW, CUTOFF_HIGH });
-    const blb = new Blob([data], { type : 'application/json' });
-
-    anchor.download = 'testData.json';
-    anchor.href = URL.createObjectURL(blb);
-}
-
-const isEmpty = arr => {
-    for(let i = 0, len = arr.length; i < len; ++i) {
-        if(arr[i]) return false;
-    }
-    return true;
-};
-
-function trim_test_data() {
-    // This function removes empty arrays
-    // from the beginning and end of the testData.
-
-    // Trim beginning
-    while(testData.length) {
-        if(isEmpty(testData[0])) testData.shift();
-        else break;
-    }
-
-    // Trim end
-    let i = testData.length;
-
-    while(i--) {
-        if(isEmpty(testData[i])) testData.pop();
-        else return;
-    }
-}
-
-window.removeData = () => {
-    URL.revokeObjectURL(anchor.href);
-};
-
 
 })();

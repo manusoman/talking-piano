@@ -71,6 +71,6 @@ function computeTrigs(N) {
     return { cosList, sinList };
 }
 
-if(window) window.getFrequencyData = getFrequencyData;
+window.getFrequencyData = getFrequencyData;
 
 })();
