@@ -41,7 +41,6 @@ const keyList = [];
 const canvasContext = canvas.getContext('2d');
 
 let PIANO = null;
-let stopPlotter = false;
 
 createPianoUI();
 setCanvas();
@@ -61,11 +60,19 @@ window.UI = {
 
         record_button.addEventListener('mousedown', callbacks.record, true);
         record_button.addEventListener('mouseup', callbacks.stop_recording, true);
+
+        record_button.addEventListener('touchstart', e => {
+            e.preventDefault();
+            callbacks.record();
+        }, { capture : true, passive : true });
+
+        record_button.addEventListener('touchend', e => {
+            e.preventDefault();
+            callbacks.stop_recording();
+        }, { capture : true, passive : true });
+
         play_button.addEventListener('click', callbacks.playSound, true);
         talk_button.addEventListener('click', callbacks.talk, true);
-
-        canvas.addEventListener('click', () => stopPlotter = !stopPlotter, true);
-        // Delete when peak finding is improved.
     },
 
     ask_microPhone_permission : () => {
@@ -87,8 +94,6 @@ window.UI = {
     },
 
     plotData : (freqArray, startIndex, length, peaks) => {
-        if(stopPlotter) return;
-
         const barWidth = canvas.width / length;
         const cv = canvas.width, ch = canvas.height;
     
@@ -114,8 +119,6 @@ window.UI = {
     },
 
     clearCanvas : () => {
-        if(stopPlotter) return;
-
         const cv = canvas.width, ch = canvas.height;
         canvasContext.clearRect(0, 0, cv, ch);
     },
