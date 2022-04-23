@@ -76,13 +76,6 @@ button {
   background-color: green;
 }
 
-#frequencyBars {
-  position: absolute;
-  width: 100%;
-  top: 250px;
-  bottom: 100px;
-}
-
 #controlPanel {
   position: fixed;
   padding: 30px;

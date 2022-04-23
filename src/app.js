@@ -74,7 +74,6 @@ async function playSound(cb) {
     const chunks = spliceData(buffer.getChannelData(0), FFT_SIZE);
     const { frequencyList, peaksList } = extract_frequencies_and_peaks(chunks);
     const source = CONTEXT.createBufferSource();
-    const plotLength = CUTOFF_HIGH - CUTOFF_LOW + 1;
     
     source.buffer = buffer;
     source.connect(CONTEXT.destination);
@@ -84,8 +83,6 @@ async function playSound(cb) {
     let counter = 0;
 
     const ID = setInterval(() => {
-        UI.plotData(frequencyList[counter], CUTOFF_LOW, plotLength, peaksList[counter]);
-
         if(++counter === flen) {
             clearInterval(ID);
             cb();
