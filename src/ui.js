@@ -127,18 +127,36 @@ function createPianoUI() {
         keyList.push(key);
 
         key.addEventListener('mousedown', function(e) {
-            e.stopPropagation();
-            playKey(i);
-            this.classList.add('keyDown');
+            pianoKeyDown(e, this, i);
         }, true);
 
         key.addEventListener('mouseup', function(e) {
-            e.stopPropagation();
-            this.classList.remove('keyDown');
+            pianoKeyUp(e, this);
         }, true);
+
+        key.addEventListener('touchstart', function(e) {
+            pianoKeyDown(e, this, i);
+        }, { capture : true, passive : true });
+
+        key.addEventListener('touchend', function(e) {
+            pianoKeyUp(e, this);
+        }, { capture : true, passive : true });
     }
     
     pianoFrame.appendChild(fragment);
+}
+
+function pianoKeyDown(e, ele, keyIndex) {
+    e.preventDefault();
+    e.stopPropagation();
+    playKey(keyIndex);
+    ele.classList.add('keyDown');
+}
+
+function pianoKeyUp(e, ele) {
+    e.preventDefault();
+    e.stopPropagation();
+    ele.classList.remove('keyDown');
 }
 
 function playKey(keyIndex) {
