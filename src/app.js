@@ -14,10 +14,13 @@ const CUTOFF_HIGH = Math.floor(4186 * FFT_SIZE / CONTEXT.sampleRate);
 // within the pitch range of a piano
 
 let MEDIA_RECORDER = null;
+let record_finished_cb = null;
 
 UI.init(PIANO, { initMediaRecorder, record, stop_recording, playSound, talk });
 
 async function initMediaRecorder(cb) {
+    CONTEXT.resume();
+    
     try {
         const devices = await navigator.mediaDevices.enumerateDevices();
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -27,7 +30,11 @@ async function initMediaRecorder(cb) {
 
         MEDIA_RECORDER = new MediaRecorder(stream, { mimeType : 'audio/webm' });
         MEDIA_RECORDER.addEventListener('dataavailable', e => {
-            e.data.size > 0 && AUDIO_CHUNKS.push(e.data);
+            if(e.data.size > 0) {
+                AUDIO_CHUNKS.push(e.data);
+                record_finished_cb && record_finished_cb(true);
+            }
+            record_finished_cb && record_finished_cb(false);
         });
     
         cb();
@@ -46,6 +53,7 @@ function record() {
     }
     
     AUDIO_CHUNKS.length = 0;
+    record_finished_cb = null;
 
     try {
         MEDIA_RECORDER.start();
@@ -58,9 +66,10 @@ function record() {
 function stop_recording() {
     if(!MEDIA_RECORDER) throw 'Media Recorder is unavailable';
     MEDIA_RECORDER.stop();
+    return new Promise(res => record_finished_cb = res);
 }
 
-async function playSound() {
+async function playSound(cb) {
     const buffer = await getAudioBuffer();
     const chunks = spliceData(buffer.getChannelData(0), FFT_SIZE);
     const { frequencyList, peaksList } = extract_frequencies_and_peaks(chunks);
@@ -76,7 +85,11 @@ async function playSound() {
 
     const ID = setInterval(() => {
         UI.plotData(frequencyList[counter], CUTOFF_LOW, plotLength, peaksList[counter]);
-        ++counter === flen && clearInterval(ID);
+
+        if(++counter === flen) {
+            clearInterval(ID);
+            cb();
+        }
     }, interval);
 
     source.start();
@@ -84,6 +97,8 @@ async function playSound() {
 
 async function talk() {    
     const buffer = await getAudioBuffer();
+    if(buffer === null) return;
+
     const chunks = spliceData(buffer.getChannelData(0), FFT_SIZE);
     const { frequencyList, peaksList } = extract_frequencies_and_peaks(chunks);
     const sampleRate = CONTEXT.sampleRate;
@@ -155,9 +170,10 @@ function extract_frequencies_and_peaks(chunks) {
 
 function getAudioBuffer() {
     if(!AUDIO_CHUNKS.length) {
-        UI.throwMessage('No sound is available');
-        console.error('No sound is available');
-        return;
+        const msg = 'No sound is available';
+        UI.throwMessage(msg);
+        console.error(msg);
+        return null;
     }
 
     return new Blob(AUDIO_CHUNKS).arrayBuffer()

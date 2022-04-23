@@ -9,7 +9,6 @@ const noSupport = document.getElementById('noSupport');
                     window.navigator.mediaDevices &&
                     window.navigator.mediaDevices.getUserMedia &&
                     window.navigator.mediaDevices.enumerateDevices &&
-                    window.navigator.permissions &&
                     window.MediaRecorder;
 
     if(!support) {
@@ -29,11 +28,12 @@ const permissionRequest = document.getElementById('permissionRequest');
 const grant_permission = document.getElementById('grant_permission');
 const errorReport = document.getElementById('errorReport');
 const errorText = document.getElementById('errorText');
+const voicePlayer = document.getElementById('voicePlayer');
 const pianoFrame = document.getElementById('piano');
 const frequencyBars = document.getElementById('frequencyBars');
 const canvas = document.getElementById('canvas');
 const record_button = document.getElementById('record');
-const play_button = document.getElementById('play');
+const voiceCheck = document.getElementById('check');
 const talk_button = document.getElementById('talk');
 
 const totalNotes = 88;
@@ -50,6 +50,22 @@ window.UI = {
     init : (piano, callbacks) => {
         PIANO = piano;
 
+        const stopRec_procedure = async e => {
+            e.preventDefault();
+            const isReady = await callbacks.stop_recording();
+            isReady && callbacks.talk();
+        };
+
+        const voiceCheck_procedure = () => {
+            overlay.classList.remove('off');
+            voicePlayer.classList.remove('off');
+
+            callbacks.playSound(() => {
+                voicePlayer.classList.add('off');
+                overlay.classList.add('off');
+            })
+        };
+
         grant_permission.addEventListener('click', () => {
             callbacks.initMediaRecorder(() => {
                 // Callback for disabling permission request overlay
@@ -59,19 +75,17 @@ window.UI = {
         }, true);
 
         record_button.addEventListener('mousedown', callbacks.record, true);
-        record_button.addEventListener('mouseup', callbacks.stop_recording, true);
+        record_button.addEventListener('mouseup', stopRec_procedure, true);
 
         record_button.addEventListener('touchstart', e => {
             e.preventDefault();
             callbacks.record();
         }, { capture : true, passive : true });
 
-        record_button.addEventListener('touchend', e => {
-            e.preventDefault();
-            callbacks.stop_recording();
-        }, { capture : true, passive : true });
+        record_button.addEventListener('touchend', stopRec_procedure,
+        { capture : true, passive : true });
 
-        play_button.addEventListener('click', callbacks.playSound, true);
+        voiceCheck.addEventListener('click', voiceCheck_procedure, true);
         talk_button.addEventListener('click', callbacks.talk, true);
     },
 

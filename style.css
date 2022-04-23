@@ -43,7 +43,6 @@ button {
 
 #piano {
   width: 100%;
-  height: 200px;
   text-align: center;
 }
 
@@ -51,11 +50,12 @@ button {
   position: relative;
   display: inline-block;
   vertical-align: top;
+  border-top: 4px solid #0c0;
 }
 
 #piano > div.white {
   width: 20px;
-  height: 100%;
+  height: 200px;
   background-color: white;
   border-right: 1px solid #e0e0e0;
 }
@@ -63,7 +63,7 @@ button {
 #piano > div.black {
   margin: 0px -7px 0px -7px;
   width: 14px;
-  height: 65%;
+  height: 130px;
   background-color: black;
   z-index: 1;
 }
@@ -103,7 +103,10 @@ button {
   z-index: 2;
 }
 
-#noSupport, #permissionRequest, #errorReport {
+#noSupport,
+#permissionRequest,
+#errorReport,
+#voicePlayer {
   position: fixed;
   padding: 20px 20px 0px 20px;
   margin: 0px auto;
@@ -119,6 +122,9 @@ button {
   z-index: 2;
 }
 
-#noSupport > *, #permissionRequest > *, #errorReport > * {
+#noSupport > *,
+#permissionRequest > *,
+#errorReport > *,
+#voicePlayer > * {
   margin-bottom: 20px;
 }
