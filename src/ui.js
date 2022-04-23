@@ -117,12 +117,13 @@ window.UI = {
 
 function createPianoUI() {
     const pattern = [ 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0 ];
+    const fragment = new DocumentFragment();
 
     for(let i = 0; i < totalNotes; ++i) {
         const key = document.createElement('div');
 
         key.classList.add(pattern[i % 12] ? 'white' : 'black');
-        pianoFrame.appendChild(key);
+        fragment.appendChild(key);
         keyList.push(key);
 
         key.addEventListener('mousedown', function(e) {
@@ -136,6 +137,8 @@ function createPianoUI() {
             this.classList.remove('keyDown');
         }, true);
     }
+    
+    pianoFrame.appendChild(fragment);
 }
 
 function playKey(keyIndex) {

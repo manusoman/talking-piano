@@ -50,14 +50,17 @@ button {
   position: relative;
   display: inline-block;
   vertical-align: top;
-  border-top: 4px solid #0c0;
+  border-top: 4px solid #00c000;
 }
 
 #piano > div.white {
   width: 20px;
   height: 200px;
   background-color: white;
-  border-right: 1px solid #e0e0e0;
+}
+
+#piano > div + div.white {
+  border-left: 1px solid #e0e0e0;
 }
 
 #piano > div.black {
@@ -68,12 +71,17 @@ button {
   z-index: 1;
 }
 
-#piano > div:hover {
-  background-color: gray;
+#piano > div.white:hover {
+  background-color: #c0c0c0;
 }
 
-#piano > div.keyDown {
-  background-color: green;
+#piano > div.black:hover {
+  background-color: #606060;
+}
+
+#piano > div.black.keyDown,
+#piano > div.white.keyDown {
+  background-color: #00c000;
 }
 
 #controlPanel {
