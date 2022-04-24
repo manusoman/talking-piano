@@ -33,6 +33,7 @@ const pianoFrame = document.getElementById('piano');
 const record_button = document.getElementById('record');
 const voiceCheck = document.getElementById('check');
 const talk_button = document.getElementById('talk');
+const copyright = document.getElementById('copyright');
 
 const totalNotes = 88;
 const keyList = [];
@@ -40,6 +41,7 @@ const keyList = [];
 let PIANO = null;
 
 createPianoUI();
+putCopyRight();
 
 window.UI = {
     init : (piano, callbacks) => {
@@ -163,5 +165,20 @@ function playKey(keyIndex) {
     if(PIANO) PIANO.playNote(keyIndex, 1);
     else throw "No piano available";
 }
+
+async function putCopyRight() {
+    let year;
+
+    try {
+        const data = await fetch('https://manusoman.github.io/MindLogs/settings.json').then(res => res.json());
+        year = data.current_year;
+    } catch(err) {
+        year = new Date().getFullYear();
+        console.error(err);
+    }
+
+    copyright.innerHTML = `© ${ year }, Manu Soman`;
+}
+
 
 })();

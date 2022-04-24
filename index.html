@@ -15,15 +15,12 @@
 
 <section id="piano"></section>
 
-<section id="frequencyBars">
-    <canvas id="canvas"></canvas>
+<section id="controlPanel">
+    <button id="check"><img src="res/loudspeaker.svg" alt="Check recording"></button><button id="record"><img src="res/mic.svg" alt="Record voice"></button><button id="talk"><img src="res/play.svg" alt="Play voice with piano"></button>
+    <p>Press and hold the record button to record voice</p>
 </section>
 
-<section id="controlPanel">
-    <button id="record">Record</button>
-    <button id="check">Voice Check</button>
-    <button id="talk">Talk Piano</button>
-</section>
+<span id="copyright"></span>
 
 <div id="overlay" class="off"></div>
 
@@ -47,7 +44,6 @@
 <script type="text/javascript" src="src/fft.js"></script>
 <script type="text/javascript" src="src/piano.js"></script>
 <script type="text/javascript" src="src/app.js"></script>
-<!-- <script type="text/javascript" src="src/compressed.js"></script> -->
 
 </body>
 </html>

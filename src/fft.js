@@ -1,6 +1,8 @@
 (() => { 'use strict';
 // My own implementation of the "Fast Fourier Transform".
 
+if(!window.appSupport) return;
+
 const { log2, hypot } = Math;
 
 const getFrequencyData = data => {
@@ -17,7 +19,7 @@ const getFrequencyData = data => {
     const frequencyData = new Float32Array(i);
     while(i--) frequencyData[i] = hypot(real[i], imag[i]);
     return frequencyData;
-}
+};
 
 function fft(data, N, cosList, sinList, start, offset) {
     const real = new Float32Array(N);
@@ -53,7 +55,7 @@ function fft(data, N, cosList, sinList, start, offset) {
     }
 
     return { real, imag };
-};
+}
 
 function computeTrigs(N) {
     let len = N / 2;

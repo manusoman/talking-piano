@@ -17,24 +17,13 @@ header {
   padding: 10px;
   height: 50px;
   background-color: black;
+  font-family: 'times new roman', serif;
   text-align: center;
   color: white;
 }
 
 header > h1 {
   font-size: 24px;
-}
-
-canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-button {
-  padding: 10px 10px;
-  font-size: 18px;
-  border-radius: 10px;
 }
 
 .off {
@@ -55,7 +44,7 @@ button {
 
 #piano > div.white {
   width: 20px;
-  height: 200px;
+  height: 180px;
   background-color: white;
 }
 
@@ -66,7 +55,7 @@ button {
 #piano > div.black {
   margin: 0px -7px 0px -7px;
   width: 14px;
-  height: 130px;
+  height: 120px;
   background-color: black;
   z-index: 1;
 }
@@ -86,12 +75,54 @@ button {
 
 #controlPanel {
   position: fixed;
-  padding: 30px;
-  width: 100%;
-  height: 100px;
-  bottom: 0px;
+  padding: 20px;
+  margin: 0px auto;
+  width: 90%;
+  max-width: 400px;
+  left: 0px;
+  right: 0px;
+  bottom: 36px;
+  border-radius: 10px;
   text-align: center;
   background-color: black;
+}
+
+#controlPanel > button {
+  width: 60px;
+  height: 60px;
+  border-radius: 30px;
+  vertical-align: bottom;
+  cursor: pointer;
+}
+
+#controlPanel > button + button {
+  margin-left: 20px;
+}
+
+#controlPanel > p {
+  margin-top: 16px;
+  font-size: 14px;
+  font-style: italic;
+  color: #ffffff60;
+}
+
+#check,
+#talk {
+  border: 2px solid #00c000;
+  background-color: transparent;
+}
+
+button#record {
+  background-color: #00c000;
+}
+
+#check:active,
+#talk:active {
+  background-color: #00c000;
+}
+
+button#record:active {
+  background-color: red;
 }
 
 #overlay {
@@ -128,4 +159,19 @@ button {
 #errorReport > *,
 #voicePlayer > * {
   margin-bottom: 20px;
+}
+
+#permissionRequest > button {
+  padding: 10px 10px;
+  font-size: 18px;
+  border-radius: 10px;
+}
+
+#copyright {
+  position: absolute;
+  width: 100%;
+  bottom: 5px;
+  text-align: center;
+  font-size: 14px;
+  color: #808080;
 }
