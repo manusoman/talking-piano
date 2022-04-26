@@ -14,6 +14,7 @@ body {
 }
 
 header {
+  position: relative;
   padding: 10px;
   height: 50px;
   background-color: black;
@@ -28,6 +29,23 @@ header > h1 {
 
 .off {
   display: none;
+}
+
+#showInfo {  
+  position: absolute;
+  margin: auto 0px;
+  width: 30px;
+  height: 30px;
+  top: 0px;
+  bottom: 0px;
+  right: 20px;
+  border-radius: 15px;
+  background-color: transparent;
+  cursor: pointer;
+}
+
+#showInfo > img {
+  width: 100%;
 }
 
 #piano {
@@ -174,4 +192,56 @@ button#record:active {
   text-align: center;
   font-size: 14px;
   color: #808080;
+}
+
+#infoBox {
+  position: fixed;
+  margin: 0px auto;
+  padding: 20px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90%;
+  left: 0px;
+  right: 0px;
+  top: 50%;
+  transform: translateY(-50%);
+  -ms-transform: translateY(-50%);
+  color: white;
+  background-color: gray;
+  border-radius: 10px;
+  z-index: 3;
+}
+
+#boxHeader {
+  position: relative;
+}
+
+#boxHeader > h3 {
+  padding-top: 10px;
+}
+
+#boxHeader > button {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  top: 0px;
+  right: 0px;
+  border-radius: 15px;
+  cursor: pointer;
+}
+
+#boxHeader > button > img {
+  width: 100%;
+}
+
+#infoText {
+  padding: 20px 0px;
+}
+
+#infoText > p {
+  margin-top: 16px;
+}
+
+#infoText a {
+  color: white;
 }

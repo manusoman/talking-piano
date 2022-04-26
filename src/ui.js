@@ -2,6 +2,8 @@
 
 const overlay = document.getElementById('overlay');
 const noSupport = document.getElementById('noSupport');
+const infoBox = document.getElementById('infoBox');
+const closeInfo = document.getElementById('closeInfo');
 
 // Browser support check
 (() => {
@@ -21,9 +23,11 @@ const noSupport = document.getElementById('noSupport');
     }
 
     window.appSupport = true;
+    showInfoBox();
 })();
 
 
+const showInfo = document.getElementById('showInfo');
 const permissionRequest = document.getElementById('permissionRequest');
 const grant_permission = document.getElementById('grant_permission');
 const errorReport = document.getElementById('errorReport');
@@ -40,6 +44,8 @@ const keyList = [];
 
 let PIANO = null;
 
+showInfo.addEventListener('click', showInfoBox, true);
+closeInfo.addEventListener('click', hideInfoBox, true);
 createPianoUI();
 putCopyRight();
 
@@ -178,6 +184,16 @@ async function putCopyRight() {
     }
 
     copyright.innerHTML = `© ${ year }, Manu Soman`;
+}
+
+function showInfoBox() {
+    overlay.classList.remove('off');
+    infoBox.classList.remove('off');
+}
+
+function hideInfoBox() {
+    infoBox.classList.add('off');
+    overlay.classList.add('off');
 }
 
 

@@ -10,13 +10,13 @@
 <body>
 
 <header>
-    <h1>Talking Piano</h1>
+    <h1>Talking Piano</h1><button id="showInfo" title="Show app info"><img src="res/info.svg" alt=""></button>
 </header>
 
 <section id="piano"></section>
 
 <section id="controlPanel">
-    <button id="check"><img src="res/loudspeaker.svg" alt="Check recording"></button><button id="record"><img src="res/mic.svg" alt="Record voice"></button><button id="talk"><img src="res/play.svg" alt="Play voice with piano"></button>
+    <button id="check" title="Check your voice"><img src="res/loudspeaker.svg" alt="Check recording"></button><button id="record" title="Record your voice"><img src="res/mic.svg" alt="Record voice"></button><button id="talk" title="Play your words with piano again"><img src="res/play.svg" alt="Play voice with piano"></button>
     <p>Press and hold the record button to record voice</p>
 </section>
 
@@ -38,6 +38,18 @@
 <div id="errorReport" class="off"><p id="errorText"></p></div>
 
 <div id="voicePlayer" class="off"><p>Playing your voice</p></div>
+
+<div id="infoBox" class="off">
+    <div id="boxHeader">
+        <h3>What is this?</h3><button id="closeInfo"><img src="res/close.svg" alt=""></button>
+    </div>
+    <div id="infoText">
+        <p>Talking Piano is inspired by <a href="https://www.youtube.com/watch?v=uBEL3YVzMwk">this video</a> from Mark Rober. Watch it, it's really great!</p>
+        <p>Basically, Talking Piano listens to what you say and mimic it by only using its keys! To play, fist record your voice by pressing and holding the "Record" button. The piano will start playing your voice back to you once you let go of the record button. If you wanna hear it again, press the "Play" button next to the "Record" button. If you feel anything wrong, just press the "Check" button which will play your voice back to you, so that you can see if the voice was recorded well.</p>
+        <p>Warning: this app isn't perfect and you would find issues. Please keep your expectations low ;)</p>
+        <p>That's it! Thanks for checking it out!</p>
+    </div>
+</div>
 
 
 <script type="text/javascript" src="src/ui.js"></script>
