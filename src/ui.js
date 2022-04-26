@@ -30,6 +30,7 @@ const closeInfo = document.getElementById('closeInfo');
 const showInfo = document.getElementById('showInfo');
 const permissionRequest = document.getElementById('permissionRequest');
 const grant_permission = document.getElementById('grant_permission');
+const rec_acknowledge = document.getElementById('rec_acknowledge');
 const errorReport = document.getElementById('errorReport');
 const errorText = document.getElementById('errorText');
 const voicePlayer = document.getElementById('voicePlayer');
@@ -46,6 +47,7 @@ let PIANO = null;
 
 showInfo.addEventListener('click', showInfoBox, true);
 closeInfo.addEventListener('click', hideInfoBox, true);
+
 createPianoUI();
 putCopyRight();
 
@@ -53,20 +55,33 @@ window.UI = {
     init : (piano, callbacks) => {
         PIANO = piano;
 
-        const stopRec_procedure = async e => {
+        const startRec_procedure = e => {            
             e.preventDefault();
-            const isReady = await callbacks.stop_recording();
-            isReady && callbacks.talk();
+            e.stopPropagation();
+            callbacks.record() && rec_acknowledge.classList.remove('off');
+        };
+
+        const stopRec_procedure = e => {
+            callbacks.stop_recording()
+            .then(isReady => isReady && callbacks.talk());
+
+            rec_acknowledge.classList.add('off');
+            e.preventDefault();
+            e.stopPropagation();
         };
 
         const voiceCheck_procedure = () => {
-            overlay.classList.remove('off');
-            voicePlayer.classList.remove('off');
+            const startSignal = () => {
+                overlay.classList.remove('off');
+                voicePlayer.classList.remove('off');
+            };
 
-            callbacks.playSound(() => {
+            const endSignal = () => {
                 voicePlayer.classList.add('off');
                 overlay.classList.add('off');
-            })
+            };
+
+            callbacks.playSound(startSignal, endSignal);
         };
 
         grant_permission.addEventListener('click', () => {
@@ -77,19 +92,17 @@ window.UI = {
             });
         }, true);
 
-        record_button.addEventListener('mousedown', callbacks.record, true);
+        record_button.addEventListener('mousedown', startRec_procedure, true);
         record_button.addEventListener('mouseup', stopRec_procedure, true);
 
-        record_button.addEventListener('touchstart', e => {
-            e.preventDefault();
-            callbacks.record();
-        }, { capture : true, passive : true });
+        record_button.addEventListener('touchstart', startRec_procedure,
+        { capture : true, passive : true });
 
         record_button.addEventListener('touchend', stopRec_procedure,
         { capture : true, passive : true });
 
-        voiceCheck.addEventListener('click', voiceCheck_procedure, true);
         talk_button.addEventListener('click', callbacks.talk, true);
+        voiceCheck.addEventListener('click', voiceCheck_procedure, true);
     },
 
     ask_microPhone_permission : () => {

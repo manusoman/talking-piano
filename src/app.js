@@ -49,7 +49,7 @@ async function initMediaRecorder(cb) {
 function record() {
     if(!MEDIA_RECORDER) {
         UI.ask_microPhone_permission();
-        return;
+        return false;
     }
     
     AUDIO_CHUNKS.length = 0;
@@ -60,7 +60,10 @@ function record() {
     } catch(err) {
         console.error(err);
         UI.ask_microPhone_permission();
+        return false;
     }
+
+    return true;
 }
 
 function stop_recording() {
@@ -69,26 +72,15 @@ function stop_recording() {
     return new Promise(res => record_finished_cb = res);
 }
 
-async function playSound(cb) {
+async function playSound(startCB, endCB) {
     const buffer = await getAudioBuffer();
-    const chunks = spliceData(buffer.getChannelData(0), FFT_SIZE);
-    const { frequencyList, peaksList } = extract_frequencies_and_peaks(chunks);
-    const source = CONTEXT.createBufferSource();
-    
+    if(!buffer) return;
+
+    startCB();
+    const source = CONTEXT.createBufferSource();    
+    source.addEventListener('ended', endCB);
     source.buffer = buffer;
     source.connect(CONTEXT.destination);
-    
-    const interval = FFT_SIZE * 1000 / CONTEXT.sampleRate;
-    const flen = frequencyList.length;
-    let counter = 0;
-
-    const ID = setInterval(() => {
-        if(++counter === flen) {
-            clearInterval(ID);
-            cb();
-        }
-    }, interval);
-
     source.start();
 }
 
@@ -99,25 +91,25 @@ async function talk() {
     const chunks = spliceData(buffer.getChannelData(0), FFT_SIZE);
     const { frequencyList, peaksList } = extract_frequencies_and_peaks(chunks);
     const sampleRate = CONTEXT.sampleRate;
-    const pianoFreqs = [];
-    const pianoAmps = [];
+    const playFreqs = [];
+    const amplitudes = [];
     
     for(let i = 0, len = chunks.length; i < len; ++i) {
         const peaks = peaksList[i];
         const peakFreqs = peaks.map(peak => sampleRate * peak / FFT_SIZE);
         const peakAmps = peaks.map(peak => frequencyList[i][peak]);
 
-        pianoFreqs.push(peakFreqs);
-        pianoAmps.push(peakAmps);
+        playFreqs.push(peakFreqs);
+        amplitudes.push(peakAmps);
     }
 
     // Play piano
     const interval = FFT_SIZE * 1000 / sampleRate;
-    const flen = pianoFreqs.length;
+    const flen = playFreqs.length;
     let counter = 0;
 
     const ID = setInterval(() => {
-        PIANO.play(pianoFreqs[counter], pianoAmps[counter]);
+        PIANO.play(playFreqs[counter], amplitudes[counter]);
         ++counter === flen && clearInterval(ID);
     }, interval);
 }

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" type="image/x-icon" href="res/favicon.svg" />
     <title>Talking Piano</title>
+    <link rel="shortcut icon" type="image/x-icon" href="res/favicon.svg">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,9 +15,11 @@
 
 <section id="piano"></section>
 
+<div id="rec_acknowledge" class="off"><div><p>Recording started...<br>Keep the button pressed till you finish.</p></div></div>
+
 <section id="controlPanel">
-    <button id="check" title="Check your voice"><img src="res/loudspeaker.svg" alt="Check recording"></button><button id="record" title="Record your voice"><img src="res/mic.svg" alt="Record voice"></button><button id="talk" title="Play your words with piano again"><img src="res/play.svg" alt="Play voice with piano"></button>
-    <p>Press and hold the record button to record voice</p>
+    <button id="record" title="Record your voice"><img src="res/mic.svg" alt="Record voice"></button><button id="talk" title="Play your words with piano again"><img src="res/play.svg" alt="Play voice with piano"></button><button id="check" title="Check your voice"><img src="res/loudspeaker.svg" alt="Check recording"></button>
+    <p>Press and hold the record button to record your voice</p>
 </section>
 
 <span id="copyright"></span>
@@ -44,10 +46,11 @@
         <h3>What is this?</h3><button id="closeInfo"><img src="res/close.svg" alt=""></button>
     </div>
     <div id="infoText">
-        <p>Talking Piano is inspired by <a target="_blank" href="https://www.youtube.com/watch?v=uBEL3YVzMwk">this video</a> from Mark Rober. Watch it, it's really great!</p>
-        <p>Basically, Talking Piano listens to what you say and mimic it by only using its keys! To play, fist record your voice by pressing and holding the "Record" button. The piano will start playing your voice back to you once you let go of the record button. If you wanna hear it again, press the "Play" button next to the "Record" button. If you feel anything wrong, just press the "Check" button which will play your voice back to you, so that you can see if the voice was recorded well.</p>
-        <p>Warning: this app isn't perfect and you would find issues. Please keep your expectations low ;)</p>
-        <p>That's it! Thanks for checking it out!</p>
+        <p>Talking Piano is inspired from <a target="_blank" href="https://www.youtube.com/watch?v=uBEL3YVzMwk">this video</a> by Mark Rober. Watch it - it's great!</p>
+        <p>The app listens to what you say and then mimics it just using piano notes! To play, first record your voice by pressing and holding the "Record" button. Make sure that you speak in a clear and loud enough voice. The piano will start playing your voice back to you once you release the button. If you want to hear it again, press the "Play" icon next to the "Record" button. If you feel anything wrong, just press the "loudspeaker" icon which will play your voice back to you, so that you can check if the voice was recorded well.</p>
+        <p>Also, note that the app needs microphone access to record your voice.</p>
+        <p>Warning: Keep your expectations low ;)</p>
+        <p>Find me on Twitter: <a target="_blank" href="https://twitter.com/manu_221b">@manu_221b</a></p>
     </div>
 </div>
 
