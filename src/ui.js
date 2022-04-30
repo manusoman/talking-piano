@@ -35,9 +35,10 @@ const errorReport = document.getElementById('errorReport');
 const errorText = document.getElementById('errorText');
 const voicePlayer = document.getElementById('voicePlayer');
 const pianoFrame = document.getElementById('piano');
+const controlPanel = document.getElementById('controlPanel');
 const record_button = document.getElementById('record');
-const voiceCheck = document.getElementById('check');
 const talk_button = document.getElementById('talk');
+const voiceCheck = document.getElementById('check');
 const copyright = document.getElementById('copyright');
 
 const totalNotes = 88;
@@ -103,6 +104,15 @@ window.UI = {
 
         talk_button.addEventListener('click', callbacks.talk, true);
         voiceCheck.addEventListener('click', voiceCheck_procedure, true);
+
+        // Remove long press default events on smartphones for
+        // the control panel images.
+        const imgs = controlPanel.getElementsByTagName('img');
+
+        for(const img of imgs) {
+            img.addEventListener('contextmenu', e => e.preventDefault(),
+            { capture : true, passive : true });
+        }
     },
 
     ask_microPhone_permission : () => {
