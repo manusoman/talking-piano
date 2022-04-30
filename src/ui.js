@@ -110,7 +110,7 @@ window.UI = {
         const imgs = controlPanel.getElementsByTagName('img');
 
         for(const img of imgs) {
-            img.addEventListener('contextmenu', e => e.preventDefault(),
+            img.addEventListener('touchstart', e => e.preventDefault(),
             { capture : true, passive : true });
         }
     },
