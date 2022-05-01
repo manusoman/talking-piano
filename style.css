@@ -27,12 +27,6 @@ header > h1 {
   font-size: 24px;
 }
 
-button, img {
-  -webkit-touch-callout: none !important; 
-  -webkit-user-select: none !important;
-  user-select: none !important;
-}
-
 .off {
   display: none;
 }
@@ -147,16 +141,21 @@ button, img {
   background-color: transparent;
 }
 
+#check.inactive,
+#talk.inactive {
+  opacity: 0.3;
+}
+
 button#record {
   background-color: #00c000;
 }
 
-#check:active,
-#talk:active {
+#check:not(.inactive):active,
+#talk:not(.inactive):active {
   background-color: #00c000;
 }
 
-button#record:active {
+button#record.recording {
   background-color: red;
 }
 

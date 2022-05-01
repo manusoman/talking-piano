@@ -35,16 +35,17 @@ const errorReport = document.getElementById('errorReport');
 const errorText = document.getElementById('errorText');
 const voicePlayer = document.getElementById('voicePlayer');
 const pianoFrame = document.getElementById('piano');
-const controlPanel = document.getElementById('controlPanel');
 const record_button = document.getElementById('record');
 const talk_button = document.getElementById('talk');
 const voiceCheck = document.getElementById('check');
+const rec_instruct = document.getElementById('rec_instruct');
 const copyright = document.getElementById('copyright');
 
 const totalNotes = 88;
 const keyList = [];
 
 let PIANO = null;
+let IS_RECORDING = false;
 
 showInfo.addEventListener('click', showInfoBox, true);
 closeInfo.addEventListener('click', hideInfoBox, true);
@@ -56,19 +57,39 @@ window.UI = {
     init : (piano, callbacks) => {
         PIANO = piano;
 
-        const startRec_procedure = e => {            
+        const manage_recording = e => {
             e.preventDefault();
             e.stopPropagation();
-            callbacks.record() && rec_acknowledge.classList.remove('off');
-        };
 
-        const stopRec_procedure = e => {
-            callbacks.stop_recording()
-            .then(isReady => isReady && callbacks.talk());
+            if(IS_RECORDING) {
+                callbacks.stop_recording()
+                .then(isReady => {
+                    if(!isReady) return;
 
-            rec_acknowledge.classList.add('off');
-            e.preventDefault();
-            e.stopPropagation();
+                    talk_button.classList.remove('inactive');
+                    voiceCheck.classList.remove('inactive');
+                    rec_acknowledge.classList.add('off');
+                    rec_instruct.innerHTML = 'Click the record button to record your voice';
+
+                    talk_button.disabled = false;
+                    voiceCheck.disabled = false;
+                });
+
+                record_button.classList.remove('recording');
+                IS_RECORDING = false;
+            } else {               
+                IS_RECORDING = callbacks.record();
+                if(!IS_RECORDING) return;
+                
+                record_button.classList.add('recording');
+                talk_button.classList.add('inactive');
+                voiceCheck.classList.add('inactive');
+                rec_acknowledge.classList.remove('off');
+                rec_instruct.innerHTML = 'Click the record button again to stop';
+                
+                talk_button.disabled = true;
+                voiceCheck.disabled = true;
+            }
         };
 
         const voiceCheck_procedure = () => {
@@ -93,32 +114,9 @@ window.UI = {
             });
         }, true);
 
-        record_button.addEventListener('mousedown', startRec_procedure, true);
-        record_button.addEventListener('mouseup', stopRec_procedure, true);
-
-        record_button.addEventListener('touchstart', startRec_procedure,
-        { capture : true, passive : true });
-
-        record_button.addEventListener('touchend', stopRec_procedure,
-        { capture : true, passive : true });
-
+        record_button.addEventListener('click', manage_recording, true);
         talk_button.addEventListener('click', callbacks.talk, true);
         voiceCheck.addEventListener('click', voiceCheck_procedure, true);
-
-        // Remove long press default events on smartphones
-        // for the record_button.
-        const absorbEvent = e => {
-            e.preventDefault();
-            e.stopPropagation();
-            e.cancelBubble = true;
-            e.returnValue = false;
-            return false;
-        };
-        
-        record_button.ontouchstart = absorbEvent;
-        record_button.ontouchmove = absorbEvent;
-        record_button.ontouchend = absorbEvent;
-        record_button.ontouchcancel = absorbEvent;
     },
 
     ask_microPhone_permission : () => {
@@ -151,6 +149,16 @@ window.UI = {
         }, duration * 1000);
     }
 };
+
+function manage_secondary_buttons(isActivate) {
+    if(isActivate) {
+        talk_button.classList.remove('inactive');
+        voiceCheck.classList.remove('inactive');
+    } else {
+        talk_button.classList.add('inactive');
+        voiceCheck.classList.add('inactive');
+    }
+}
 
 function createPianoUI() {
     const pattern = [ 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0 ];

@@ -15,11 +15,11 @@
 
 <section id="piano"></section>
 
-<div id="rec_acknowledge" class="off"><div><p>Recording started...<br>Keep the button pressed till you finish.</p></div></div>
+<div id="rec_acknowledge" class="off"><div><p>Recording...</p></div></div>
 
 <section id="controlPanel">
-    <button id="record" title="Record your voice"><img src="res/mic.svg" alt="Record voice"></button><button id="talk" title="Play your words with piano again"><img src="res/play.svg" alt="Play voice with piano"></button><button id="check" title="Check your voice"><img src="res/loudspeaker.svg" alt="Check recording"></button>
-    <p>Press and hold the record button to record your voice</p>
+    <button id="record" title="Record your voice"><img src="res/mic.svg" alt="Record voice"></button><button class="inactive" disabled="true" id="talk" title="Play your words with piano"><img src="res/play.svg" alt="Play voice with piano"></button><button disabled="true" class="inactive" id="check" title="Check your voice"><img src="res/loudspeaker.svg" alt="Check recording"></button>
+    <p id="rec_instruct">Click the record button to record your voice</p>
 </section>
 
 <span id="copyright"></span>
@@ -47,7 +47,7 @@
     </div>
     <div id="infoText">
         <p>Talking Piano is inspired from <a target="_blank" href="https://www.youtube.com/watch?v=uBEL3YVzMwk">this video</a> by Mark Rober. Watch it - it's great!</p>
-        <p>The app listens to what you say and then mimics it just using piano notes! To play, first record your voice by pressing and holding the "Record" button. Make sure that you speak in a clear and loud enough voice. The piano will start playing your voice back to you once you release the button. If you want to hear it again, press the "Play" icon next to the "Record" button. If you feel anything wrong, just press the "loudspeaker" icon which will play your voice back to you, so that you can check if the voice was recorded well.</p>
+        <p>The app listens to what you say and then mimics it just using piano notes! To play, first record your voice by clicking the "Record" button. Make sure that you speak in a clear and loud enough voice. Click the record button again to finish the recording. Once finished, click the "Play" icon next to the "Record" button to make the piano talk. If you feel anything wrong, just press the "loudspeaker" icon which will play your voice back to you, so that you can check if the voice was recorded well.</p>
         <p>Also, note that the app needs microphone access to record your voice.</p>
         <p>Warning: Keep your expectations low ;)</p>
         <p>Find me on Twitter: <a target="_blank" href="https://twitter.com/manu_221b">@manu_221b</a></p>
