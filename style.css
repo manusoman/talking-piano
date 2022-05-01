@@ -27,6 +27,12 @@ header > h1 {
   font-size: 24px;
 }
 
+button, img {
+  -webkit-touch-callout: none !important; 
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+
 .off {
   display: none;
 }
