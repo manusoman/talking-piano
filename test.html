@@ -47,8 +47,11 @@ preventLongPressMenu(two);
 preventLongPressMenu(twoImg);
 
 function absorbEvent_(e) {
-      e.preventDefault();
-    //   e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
+            e.cancelBubble = true;
+            e.returnValue = false;
+            return false;
     }
 
     function preventLongPressMenu(node) {
