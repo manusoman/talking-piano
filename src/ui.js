@@ -65,14 +65,10 @@ window.UI = {
                 callbacks.stop_recording()
                 .then(isReady => {
                     if(!isReady) return;
-
-                    talk_button.classList.remove('inactive');
-                    voiceCheck.classList.remove('inactive');
+                    
                     rec_acknowledge.classList.add('off');
                     rec_instruct.innerHTML = 'Click the record button to record your voice';
-
-                    talk_button.disabled = false;
-                    voiceCheck.disabled = false;
+                    manage_secondary_buttons(true);
                 });
 
                 record_button.classList.remove('recording');
@@ -82,13 +78,9 @@ window.UI = {
                 if(!IS_RECORDING) return;
                 
                 record_button.classList.add('recording');
-                talk_button.classList.add('inactive');
-                voiceCheck.classList.add('inactive');
                 rec_acknowledge.classList.remove('off');
                 rec_instruct.innerHTML = 'Click the record button again to stop';
-                
-                talk_button.disabled = true;
-                voiceCheck.disabled = true;
+                manage_secondary_buttons(false);
             }
         };
 
@@ -151,13 +143,12 @@ window.UI = {
 };
 
 function manage_secondary_buttons(isActivate) {
-    if(isActivate) {
-        talk_button.classList.remove('inactive');
-        voiceCheck.classList.remove('inactive');
-    } else {
-        talk_button.classList.add('inactive');
-        voiceCheck.classList.add('inactive');
-    }
+    const method = isActivate ? 'remove' : 'add';
+    
+    talk_button.classList[method]('inactive');
+    voiceCheck.classList[method]('inactive');
+    talk_button.disabled = !isActivate;
+    voiceCheck.disabled = !isActivate;
 }
 
 function createPianoUI() {
