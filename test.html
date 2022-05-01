@@ -41,7 +41,9 @@ const twoImg = document.getElementById('twoImg');
 const three = document.getElementById('three');
 const four = document.getElementById('four');
 
-one.addEventListener('touchstart', () => console.log('hello'));
+one.addEventListener('touchstart', () => console.log('hello'), { capture : true, passive : true });
+one.addEventListener('mousedown', () => console.log('hello'), { capture : true, passive : true });
+one.addEventListener('mouseup', () => console.log('hello'), { capture : true, passive : true });
 preventLongPressMenu(one);
 preventLongPressMenu(two);
 preventLongPressMenu(twoImg);

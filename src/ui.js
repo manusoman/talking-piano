@@ -114,10 +114,6 @@ window.UI = {
             e.returnValue = false;
             return false;
         };
-
-        record_button.onmousedown = absorbEvent;
-        record_button.onmouseup = absorbEvent;
-        record_button.onclick = absorbEvent;
         
         record_button.ontouchstart = absorbEvent;
         record_button.ontouchmove = absorbEvent;
