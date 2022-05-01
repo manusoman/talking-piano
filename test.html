@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" type="image/x-icon" href="favicon.svg" />
+    <title>Button test</title>
+    <style>
+        * {
+            margin : 0px;
+            padding : 0px;
+        }
+
+        body {
+            padding: 50px;
+            background-color: #404040;
+        }
+
+        button {
+            background-color: green;
+        }
+
+        button, img {
+            -webkit-touch-callout: none !important; 
+            -webkit-user-select: none !important;
+            user-select: none !important;
+        }
+    </style>
+</head>
+<body>
+    <button id="one"><img src="res/mic.svg" alt=""></button>
+    <button id="two"><img id="twoImg" src="res/mic.svg" alt=""></button>
+    <button id="three"><img src="res/mic.svg" alt=""></button>
+    <button id="four"><img src="res/mic.svg" alt=""></button>
+
+<script>
+
+const one = document.getElementById('one');
+const two = document.getElementById('two');
+const twoImg = document.getElementById('twoImg');
+const three = document.getElementById('three');
+const four = document.getElementById('four');
+
+one.addEventListener('touchstart', () => console.log('hello'));
+preventLongPressMenu(one);
+preventLongPressMenu(two);
+preventLongPressMenu(twoImg);
+
+function absorbEvent_(e) {
+      e.preventDefault();
+    //   e.stopPropagation();
+    }
+
+    function preventLongPressMenu(node) {
+      node.ontouchstart = absorbEvent_;
+      node.ontouchmove = absorbEvent_;
+      node.ontouchend = absorbEvent_;
+      node.ontouchcancel = absorbEvent_;
+    }
+
+</script>
+</body>
+</html> 
