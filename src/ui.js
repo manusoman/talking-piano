@@ -105,14 +105,20 @@ window.UI = {
         talk_button.addEventListener('click', callbacks.talk, true);
         voiceCheck.addEventListener('click', voiceCheck_procedure, true);
 
-        // Remove long press default events on smartphones for
-        // the control panel images.
-        const imgs = controlPanel.getElementsByTagName('img');
+        // Remove long press default events on smartphones
+        // for the record_button.
+        const absorbEvent = e => {
+            e.preventDefault();
+            e.stopPropagation();
+            e.cancelBubble = true;
+            e.returnValue = false;
+            return false;
+        };
 
-        for(const img of imgs) {
-            img.addEventListener('touchstart', e => e.preventDefault(),
-            { capture : true, passive : true });
-        }
+        record_button.ontouchstart = absorbEvent;
+        record_button.ontouchmove = absorbEvent;
+        record_button.ontouchend = absorbEvent;
+        record_button.ontouchcancel = absorbEvent;
     },
 
     ask_microPhone_permission : () => {
